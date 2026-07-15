@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maris O'quv Markaz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
+<style>
+:root{
+  --navy:#111111; --navy-deep:#000000; --navy-mid:#262626; --navy-light:#E6E6E6;
+  --gold:#FFCE00; --gold-light:#FFDD4D; --white:#FFFFFF;
+  --green:#1E8E4C; --red:#D9342B;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:'Inter',sans-serif; background:#FFFFFF; color:var(--navy); -webkit-font-smoothing:antialiased;}
+.disp{font-family:'Space Grotesk',sans-serif;}
+::selection{background:var(--gold); color:var(--navy);}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit; font-size:14px;}
+
+/* ---------- top bar ---------- */
+header{
+  background:var(--navy); border-bottom:3px solid var(--gold);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; position:sticky; top:0; z-index:50; flex-wrap:wrap; gap:10px;
+}
+.logo{display:flex; align-items:center; gap:10px; cursor:pointer;}
+.logo svg{flex-shrink:0;}
+.logo-text .t1{font-family:'Space Grotesk'; font-weight:700; color:#fff; font-size:17px; line-height:1;}
+.logo-text .t2{font-size:9px; letter-spacing:.2em; color:var(--gold); font-weight:600;}
+.user-box{display:flex; align-items:center; gap:12px;}
+.user-box .name{color:#fff; font-size:13px; text-align:right; line-height:1.2;}
+.user-box .role{color:var(--gold-light); font-size:10px; text-transform:uppercase; letter-spacing:.05em;}
+.btn{border:2px solid var(--navy); background:var(--navy); color:#fff; font-weight:600; font-size:13px; padding:9px 16px; border-radius:8px; transition:.15s;}
+.btn:hover{background:var(--navy-mid);}
+.btn.gold{background:var(--gold); border-color:var(--gold); color:var(--navy);}
+.btn.gold:hover{background:var(--gold-light);}
+.btn.outline{background:transparent; color:var(--navy);}
+.btn.outline:hover{background:var(--navy); color:#fff;}
+.btn.small{padding:6px 12px; font-size:12px;}
+.btn.danger{background:transparent; border-color:var(--red); color:var(--red);}
+.btn.danger:hover{background:var(--red); color:#fff;}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn.signout{border:1px solid var(--gold); background:transparent; color:var(--gold-light); font-size:12px; padding:8px 12px;}
+
+main{max-width:1000px; margin:0 auto; padding:30px 20px 70px;}
+h1.page-title{font-family:'Space Grotesk'; font-size:24px; font-weight:700; margin-bottom:4px;}
+.sub{color:#6b7280; font-size:13px; margin-bottom:26px;}
+
+.card{border:2px solid var(--navy); border-radius:10px; padding:20px 22px; background:#fff;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#5c6b8a; margin-bottom:5px;}
+.field input, .field select, .field textarea{
+  width:100%; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px;
+}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold);}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:calc(100vh - 66px); display:flex; align-items:center; justify-content:center; background:var(--navy-deep); padding:20px;}
+.login-card{width:100%; max-width:360px;}
+.login-box{background:var(--navy); border:1px solid var(--navy-mid); border-radius:14px; padding:32px; box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.login-box h2{font-family:'Space Grotesk'; color:#fff; font-size:19px; margin-bottom:4px;}
+.login-box .sub2{color:#9AA6C4; font-size:13px; margin-bottom:20px;}
+.login-box .field label{color:var(--gold-light);}
+.login-box .field input{background:#1c1c1c; border-color:var(--navy-mid); color:#fff;}
+.login-box .field input::placeholder{color:#7a7a7a;}
+.error-msg{color:#FF8A80; font-size:13px; margin:6px 0 10px;}
+.demo-hint{color:#9a9a9a; font-size:11px; margin-top:16px; line-height:1.6; text-align:center;}
+
+/* ---------- level/homework cards ---------- */
+.hw-card{border:2px solid var(--navy); border-radius:10px; padding:18px 20px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; background:#fff;}
+.hw-card .title{font-family:'Space Grotesk'; font-weight:700; font-size:16px;}
+.hw-card .meta{font-size:12px; color:#6b7280; margin-top:4px;}
+.badge{font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; border:1px solid;}
+.badge.open{background:#E9F8EF; color:var(--green); border-color:var(--green);}
+.badge.locked{background:#F3F4F6; color:#6b7280; border-color:#d1d5db;}
+.badge.done{background:#FBF3D9; color:#8a6d1a; border-color:var(--gold);}
+.badge.expired{background:#FEE; color:var(--red); border-color:var(--red);}
+
+/* ---------- test screen ---------- */
+.exam-lockdown{-webkit-user-select:none; -moz-user-select:none; user-select:none;}
+.timer-box{font-family:'Space Grotesk'; font-weight:700; font-size:20px; padding:8px 18px; border-radius:8px; background:var(--navy); color:var(--gold); border:2px solid var(--navy);}
+.timer-box.warn{background:var(--red); color:#fff; border-color:var(--red); animation:pulse 1s infinite;}
+@keyframes pulse{50%{opacity:.5;}}
+.progress-track{width:100%; height:8px; background:#eee; border:2px solid var(--navy); border-radius:6px; margin:18px 0 26px; overflow:hidden;}
+.progress-fill{height:100%; background:var(--gold); transition:.25s;}
+.q-text{font-family:'Space Grotesk'; font-weight:600; font-size:19px; margin-bottom:22px; line-height:1.4;}
+.option{display:flex; align-items:center; gap:12px; border:2px solid var(--navy-light); border-radius:8px; padding:12px 14px; margin-bottom:10px; transition:.12s;}
+.option:hover{background:#FBF6E4;}
+.option.selected{background:var(--gold); border-color:var(--navy); font-weight:600;}
+.bubble{width:26px; height:26px; min-width:26px; border-radius:50%; border:2px solid var(--navy); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;}
+.option.selected .bubble{background:var(--navy); color:var(--gold);}
+.violation-note{background:#FEEEEC; border:1px solid var(--red); color:var(--red); font-size:12px; padding:10px 14px; border-radius:8px; margin-bottom:14px;}
+
+/* ---------- result banner ---------- */
+.result-banner{border:4px solid; border-radius:12px; padding:34px 20px; text-align:center; margin-bottom:20px;}
+.result-banner.pass{border-color:var(--green); background:#EEFBF2;}
+.result-banner.fail{border-color:var(--red); background:#FDEEEC;}
+.result-banner p{font-family:'Space Grotesk'; font-weight:700; font-size:24px; line-height:1.5;}
+.result-banner.pass p{color:var(--green);}
+.result-banner.fail p{color:var(--red);}
+
+/* ---------- teacher/admin ---------- */
+.grid2{display:grid; grid-template-columns:1.4fr 1fr; gap:24px;}
+@media(max-width:800px){.grid2{grid-template-columns:1fr;}}
+.notif-item{padding:12px 14px; border-bottom:1px solid #eee; font-size:13px;}
+.notif-item.alert{background:#FDEEEC; color:var(--red);}
+.notif-time{font-size:10px; color:#9ca3af; margin-top:3px;}
+.q-block{border:1px solid var(--navy-light); border-radius:8px; padding:14px; margin-bottom:12px;}
+.q-block .qhead{display:flex; justify-content:space-between; font-size:11px; color:#6b7280; margin-bottom:8px; font-weight:700;}
+.opt-row{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+.opt-row input[type=text]{flex:1;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{background:var(--navy); color:var(--gold); text-align:left; padding:10px 12px; font-family:'Space Grotesk';}
+td{padding:10px 12px; border-top:1px solid #eee;}
+.tag{font-size:10px; background:#FEEEEC; color:var(--red); padding:2px 8px; border-radius:12px; margin:2px 2px 0 0; display:inline-block;}
+.disclaimer{background:#FFF8E1; border:1px solid var(--gold); border-radius:8px; padding:12px 16px; font-size:12px; color:#6b5510; margin-bottom:24px; line-height:1.6;}
+.empty{text-align:center; color:#9ca3af; padding:40px; border:1px dashed #d1d5db; border-radius:10px;}
+</style>
+</head>
+<body>
+
+<header id="header">
+  <div class="logo" onclick="goHome()">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <rect x="2" y="2" width="36" height="36" rx="4" stroke="#D4AF37" stroke-width="2.5"/>
+      <path d="M9 29V11l11 12 11-12v18" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="logo-text"><div class="t1">MARIS</div><div class="t2">O'QUV MARKAZ</div></div>
+  </div>
+  <div id="header-right"></div>
+</header>
+
+<main id="app"></main>
+
+<script>
+/* ============================================================
+   MARIS O'QUV MARKAZ — demo/prototip
+   Ma'lumotlar Google Firebase (Firestore) bulutli bazasida saqlanadi
+   — shuning uchun bitta qurilmada yaratilgan hisob/uy vazifa boshqa
+   HAR QANDAY qurilmada (kompyuter, planshet, telefon) internetga
+   ulangan holda darhol ko'rinadi. Ko'p odam bir vaqtda foydalanishi
+   mumkin. Buni ishlatish uchun pastdagi FIREBASE_CONFIG'ni o'zingizning
+   (bepul) Firebase loyihangiz ma'lumotlari bilan to'ldiring — sahifa
+   ochilganda agar to'ldirilmagan bo'lsa, ko'rsatma ekrani chiqadi.
+
+   MUHIM: bu hali ham "parollar xeshlanmagan" darajadagi demo xavfsizlik
+   — production/haqiqiy o'quvchi ma'lumotlari uchun avval berilgan
+   Next.js + PostgreSQL + NextAuth loyihasi ancha xavfsizroq.
+   ============================================================ */
+
+// ---------- 1) O'ZINGIZNING Firebase loyihangiz konfiguratsiyasini shu yerga qo'ying ----------
+// console.firebase.google.com -> loyiha yarating -> Build > Firestore Database -> Create database
+// -> Project settings -> General -> "Your apps" -> Web app (</>) qo'shing -> config'ni shu yerga nusxa oling.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAwwjBGGazu02LJ3QFpN4pe1bjFiHPWwjg",
+  authDomain: "maris-homework.firebaseapp.com",
+  projectId: "maris-homework",
+  storageBucket: "maris-homework.firebasestorage.app",
+  messagingSenderId: "703412040953",
+  appId: "1:703412040953:web:3a71b68fadeea9ec4c9e28"
+};
+
+// Insho/yozma javoblarni AI orqali avtomatik baholash uchun Cloudflare Worker manzili.
+// Worker'ni o'rnatgach, pastdagi qatorni o'zingizning manzilingiz bilan almashtiring:
+// masalan: "https://maris-ai-grading.SIZNING-NOM.workers.dev"
+const AI_ENDPOINT = "https://mari-ai-grading.risqimbekovodilbek.workers.dev";
+function aiGradingConfigured(){ return AI_ENDPOINT && AI_ENDPOINT !== "YOUR_WORKER_URL"; }
+
+let db = null;
+let firebaseReady = false;
+let firebaseInitError = null;
+try{
+  if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY"){
+    if(typeof firebase === 'undefined'){
+      firebaseInitError = 'SDK_NOT_LOADED';
+    } else {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+      db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+      firebaseReady = true;
+    }
+  }
+}catch(e){
+  console.error('Firebase init xatosi:', e);
+  firebaseInitError = e.message;
+}
+
+const VIOLATION_LABELS = {
+  TAB_SWITCH: "Boshqa tabga/oynaga o'tdi",
+  WINDOW_BLUR: "Sahifadan e'tibori chalg'idi",
+  COPY_ATTEMPT: "Nusxa olishga urindi",
+  PASTE_ATTEMPT: "Joylashtirishga urindi",
+  RIGHT_CLICK: "O'ng tugma menyusini ochishga urindi",
+  DEVTOOLS_ATTEMPT: "Dasturchi konsolini ochishga urindi",
+  PAGE_EXIT: "Sahifani tark etdi / yopdi",
+};
+
+let session = JSON.parse(localStorage.getItem('mom_session') || 'null');
+let pollTimer = null;
+let notifUnsub = null;
+function stopLiveUpdates(){ clearInterval(pollTimer); if(notifUnsub){ notifUnsub(); notifUnsub=null; } }
+
+// ---------- storage helpers, now backed by Firestore (real cloud sync) ----------
+// Every key (e.g. "mom:user:student1") is stored as one document in the
+// "maris_data" collection, so the rest of the app's code didn't need to change.
+const COLLECTION = 'maris_data';
+
+async function sGet(key){
+  if(!firebaseReady) return null;
+  try{
+    const doc = await withTimeout(db.collection(COLLECTION).doc(key).get(), 10000);
+    return doc.exists ? JSON.parse(doc.data().value) : null;
+  }catch(e){ console.error('Firestore get xatosi:', key, e); return null; }
+}
+async function sSet(key, val){
+  if(!firebaseReady) return false;
+  try{
+    await withTimeout(db.collection(COLLECTION).doc(key).set({ value: JSON.stringify(val), updatedAt: Date.now() }), 10000);
+    return true;
+  }catch(e){ console.error('Firestore set xatosi:', key, e); return false; }
+}
+
+function normalizeAnswer(str){
+  return (str||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
+}
+function isAnswerCorrect(given, correctAnswer){
+  const g = normalizeAnswer(given);
+  if(!g) return false;
+  const accepted = (correctAnswer||'').split('/').map(normalizeAnswer).filter(Boolean);
+  return accepted.includes(g);
+}
+
+async function aiGradeEssay(questionText, rubric, answerText){
+  if(!aiGradingConfigured()) return { score:null, feedback:null, error:'NOT_CONFIGURED' };
+  try{
+    const res = await withTimeout(fetch(AI_ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question: questionText, rubric: rubric||'', answer: answerText })
+    }), 30000);
+    if(!res.ok) return { score:null, feedback:null, error:'HTTP_'+res.status };
+    const data = await res.json();
+    if(data.error) return { score:null, feedback:null, error:data.error };
+    return { score: data.score, feedback: data.feedback, error:null };
+  }catch(e){
+    return { score:null, feedback:null, error: e.message };
+  }
+}
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+function hashSeed(str){
+  let h=0; for(let i=0;i<str.length;i++){ h=(h<<5)-h+str.charCodeAt(i); h|=0; } return h;
+}
+function shuffleSeeded(arr, seed){
+  const a=[...arr]; let s=seed, m=a.length;
+  while(m){ s=(s*9301+49297)%233280; const i=Math.floor((s/233280)*m--); [a[m],a[i]]=[a[i],a[m]]; }
+  return a;
+}
+
+// ---------- seed exactly one admin, one teacher, one student (first run only) ----------
+async function ensureSeed(){
+  const seeded = await sGet('mom:seeded');
+  if(!seeded){
+    await sSet('mom:user:admin', {username:'admin', password:'marisadmin', fullName:'Administrator', role:'ADMIN'});
+    await sSet('mom:user:ustoz1', {username:'ustoz1', password:'ustoz123', fullName:"O'qituvchi", role:'TEACHER', groups:['M-11']});
+    await sSet('mom:user:student1', {username:'student1', password:'student123', fullName:"O'quvchi", role:'STUDENT', groupName:'M-11'});
+    await sSet('mom:userlist', ['admin','ustoz1','student1']);
+    await sSet('mom:homeworklist', []);
+    await sSet('mom:seeded', true);
+  }
+  await ensureAdminExists(); // always run as a safety net, even if already seeded
+}
+
+// Self-healing: if the system somehow ends up with zero ADMIN accounts
+// (e.g. an interrupted factory reset), recreate a fallback admin login
+// automatically so the site never becomes permanently locked out.
+async function ensureAdminExists(){
+  const list = (await sGet('mom:userlist')) || [];
+  let hasAdmin = false;
+  for(const uname of list){
+    const u = await sGet('mom:user:'+uname);
+    if(u && u.role === 'ADMIN'){ hasAdmin = true; break; }
+  }
+  if(hasAdmin) return;
+
+  await sSet('mom:user:admin', {username:'admin', password:'marisadmin', fullName:'Administrator', role:'ADMIN'});
+  if(!list.includes('admin')){
+    list.push('admin');
+    await sSet('mom:userlist', list);
+  }
+}
+
+// ============================================================
+// ROUTER
+// ============================================================
+function goHome(){
+  if(!session){ renderLogin(); return; }
+  if(session.role==='TEACHER' || session.role==='SUPPORT_TEACHER') renderTeacherDashboard();
+  else if(session.role==='ADMIN') renderAdminDashboard();
+  else renderStudentDashboard();
+}
+
+function setSession(user){
+  session = user;
+  localStorage.setItem('mom_session', JSON.stringify(user));
+  renderHeader();
+  goHome();
+}
+function logout(){
+  session = null;
+  localStorage.removeItem('mom_session');
+  stopLiveUpdates();
+  renderHeader();
+  renderLogin();
+}
+
+function renderHeader(){
+  const el = document.getElementById('header-right');
+  if(!session){ el.innerHTML=''; return; }
+  const roleLabel = session.role==='TEACHER' ? "O'qituvchi" : session.role==='SUPPORT_TEACHER' ? "Yordamchi o'qituvchi" : session.role==='ADMIN' ? 'Administrator' : "O'quvchi";
+  el.innerHTML = `
+    <div class="user-box">
+      <div class="name">${session.fullName}<div class="role">${roleLabel}</div></div>
+      <button class="btn signout" onclick="logout()">Chiqish</button>
+    </div>`;
+}
+
+const app = document.getElementById('app');
+
+// ============================================================
+// LOGIN
+// ============================================================
+function renderLogin(){
+  app.innerHTML = `
+  <div class="login-wrap" style="margin:-30px -20px -70px;">
+    <div class="login-card">
+      <div class="login-box">
+        <h2>Tizimga kirish</h2>
+        <div class="sub2">Login va parolingizni kiriting</div>
+        <div class="field"><label>Login</label><input id="li-user" placeholder="masalan: student1"></div>
+        <div class="field">
+          <label>Parol</label>
+          <div style="position:relative;">
+            <input id="li-pass" type="password" placeholder="••••••••" style="width:100%; padding-right:44px;">
+            <span onclick="togglePasswordVisibility()" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:18px; user-select:none;" id="pw-eye">👁️</span>
+          </div>
+        </div>
+        <div class="error-msg" id="li-err" style="display:none;"></div>
+        <button class="btn gold" style="width:100%;" onclick="doLogin()">Kirish</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('li-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+}
+
+function togglePasswordVisibility(){
+  const input = document.getElementById('li-pass');
+  const eye = document.getElementById('pw-eye');
+  if(input.type === 'password'){
+    input.type = 'text';
+    eye.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    eye.textContent = '👁️';
+  }
+}
+
+async function sGetStrict(key){
+  if(!firebaseReady) throw new Error('Firebase ulanmagan');
+  const doc = await withTimeout(db.collection(COLLECTION).doc(key).get(), 10000);
+  return doc.exists ? JSON.parse(doc.data().value) : null;
+}
+
+async function doLogin(){
+  const u = document.getElementById('li-user').value.trim();
+  const p = document.getElementById('li-pass').value;
+  const errEl = document.getElementById('li-err');
+  let user;
+  try{
+    user = await sGetStrict('mom:user:'+u);
+  }catch(e){
+    console.error('Login ulanish xatosi:', e);
+    errEl.textContent = "Bulutga ulanib bo'lmadi. Internetni tekshiring yoki saytni jonli havoladan (fayl emas) qayta oching.";
+    errEl.style.display='block';
+    return;
+  }
+  if(!user || user.password !== p){
+    errEl.textContent = "Login yoki parol noto'g'ri";
+    errEl.style.display='block';
+    return;
+  }
+  setSession(user);
+}
+
+// ============================================================
+// STUDENT DASHBOARD
+// ============================================================
+async function renderStudentDashboard(){
+  app.innerHTML = `<h1 class="page-title">Uy vazifalarim</h1><div class="sub">Faqat belgilangan vaqt oralig'ida ochiq testlarni topshirishingiz mumkin.</div><div id="hw-list">Yuklanmoqda...</div>`;
+
+  const ids = (await sGet('mom:homeworklist')) || [];
+  const now = new Date();
+  const items = [];
+  for(const id of ids){
+    const hw = await sGet('mom:homework:'+id);
+    if(!hw || hw.groupName !== session.groupName) continue;
+    const sub = await sGet('mom:submission:'+id+':'+session.username);
+    let status='locked', label='Hali boshlanmagan', cls='locked';
+    if(sub && sub.blocked){ status='blocked'; label="🚫 Bloklangan — o'qituvchi ruxsatini kuting"; cls='expired'; }
+    else if(sub && sub.pendingReview){ status='pending'; label="⏳ Insho tekshirilmoqda"; cls='locked'; }
+    else if(sub && sub.submittedAt){ status = sub.passed ? 'done' : 'failed'; label = sub.passed ? ('✅ Yakunlangan — natija: '+sub.score+'%') : ('❌ Natija: '+sub.score+'% — qayta urinib ko\'ring'); cls = sub.passed ? 'done' : 'expired'; }
+    else if(now < new Date(hw.startAt)){ status='locked'; label='Hali boshlanmagan'; cls='locked'; }
+    else if(now > new Date(hw.endAt)){ status='expired'; label='Muddati tugagan'; cls='expired'; }
+    else { status='open'; label='Ochiq'; cls='open'; }
+    items.push({hw, sub, status, label, cls});
+  }
+
+  const listEl = document.getElementById('hw-list');
+  if(items.length===0){ listEl.innerHTML = `<div class="empty">Hozircha sizga tayinlangan uy vazifasi yo'q.</div>`; return; }
+
+  listEl.innerHTML = items.map(it => `
+    <div class="hw-card">
+      <div>
+        <div class="title">${it.hw.title}</div>
+        <div class="meta">${it.hw.description||''}</div>
+        <div class="meta">${new Date(it.hw.startAt).toLocaleString('uz-UZ')} — ${new Date(it.hw.endAt).toLocaleString('uz-UZ')} · ${it.hw.questions.length} savol · ${it.hw.durationMin} daqiqa</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="badge ${it.cls}">${it.label}</span>
+        ${it.status==='open' ? `<button class="btn gold small" onclick="startTest('${it.hw.id}')">Boshlash</button>` : ''}
+        ${it.status==='failed' && now < new Date(it.hw.endAt) ? `<button class="btn outline small" onclick="retryHomework('${it.hw.id}')">↻ Qayta urinish</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// TEST TAKING + ANTI-CHEAT
+// ============================================================
+let examState = null;
+let examTimerHandle = null;
+let cheatListenersActive = false;
+
+let examTabId = null;
+let examLockInterval = null;
+
+async function startTest(hwId){
+  // Prevent opening the SAME exam in a second tab of this same browser.
+  // Note: this can only detect duplicate tabs within this browser — no website
+  // can detect or block a person opening an unrelated tab/app on their device.
+  const lockKey = 'mom:examlock:'+hwId+':'+session.username;
+  const existingLock = localStorage.getItem(lockKey);
+  if(existingLock){
+    const lock = JSON.parse(existingLock);
+    if(Date.now() - lock.at < 15000){
+      alert("Bu test allaqachon boshqa oynada/tabda ochiq. Avval o'sha oynani yoping.");
+      return;
+    }
+  }
+  examTabId = uid();
+  localStorage.setItem(lockKey, JSON.stringify({tabId: examTabId, at: Date.now()}));
+
+  const hw = await sGet('mom:homework:'+hwId);
+  if(!hw) return;
+  const seed = hashSeed(session.username + hwId);
+  const questions = shuffleSeeded(hw.questions, seed);
+
+  let sub = await sGet('mom:submission:'+hwId+':'+session.username);
+  if(!sub){
+    sub = {hwId, username:session.username, answers:{}, violations:[], startedAt:new Date().toISOString(), submittedAt:null};
+    await sSet('mom:submission:'+hwId+':'+session.username, sub);
+  }
+
+  examState = { hw, questions, current:0, answers: sub.answers || {}, secondsLeft: hw.durationMin*60, violationCount: (sub.violations||[]).length };
+  attachCheatListeners();
+  renderExam();
+  examTimerHandle = setInterval(tickTimer, 1000);
+
+  // Heartbeat: refresh our lock every 5s so it doesn't look "stale" to other tabs
+  clearInterval(examLockInterval);
+  examLockInterval = setInterval(()=>{
+    localStorage.setItem(lockKey, JSON.stringify({tabId: examTabId, at: Date.now()}));
+  }, 5000);
+
+  // If another tab steals the lock (opens the same exam), stop here immediately
+  window.addEventListener('storage', (e)=>{
+    if(e.key === lockKey && examState){
+      const lock = JSON.parse(e.newValue || '{}');
+      if(lock.tabId && lock.tabId !== examTabId){
+        clearInterval(examTimerHandle);
+        clearInterval(examLockInterval);
+        detachCheatListeners();
+        examState = null;
+        app.innerHTML = `<div style="text-align:center; padding:80px 20px;">
+          <div class="disp" style="font-size:18px; margin-bottom:10px;">Test boshqa oynada ochildi</div>
+          <div class="sub">Bu test boshqa tab/oynada davom ettirilmoqda, shuning uchun bu yerda to'xtatildi.</div>
+          <button class="btn gold" style="margin-top:16px;" onclick="renderStudentDashboard()">Bosh sahifaga qaytish</button>
+        </div>`;
+      }
+    }
+  });
+}
+
+function tickTimer(){
+  examState.secondsLeft--;
+  if(examState.secondsLeft <= 0){
+    clearInterval(examTimerHandle);
+    submitExam(false);
+    return;
+  }
+  const mm = String(Math.floor(examState.secondsLeft/60)).padStart(2,'0');
+  const ss = String(examState.secondsLeft%60).padStart(2,'0');
+  const box = document.getElementById('timer-box');
+  if(box){
+    box.textContent = mm+':'+ss;
+    box.className = 'timer-box' + (examState.secondsLeft<=60 ? ' warn' : '');
+  }
+}
+
+function renderExam(){
+  const {hw, questions, current, answers} = examState;
+  const q = questions[current];
+  const isLast = current === questions.length-1;
+  const mm = String(Math.floor(examState.secondsLeft/60)).padStart(2,'0');
+  const ss = String(examState.secondsLeft%60).padStart(2,'0');
+
+  app.innerHTML = `
+  <div class="exam-lockdown">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px;">
+      <div>
+        <div class="page-title" style="font-size:18px;">${hw.title}</div>
+        <div class="sub" style="margin-bottom:0;">Savol ${current+1} / ${questions.length}</div>
+      </div>
+      <div id="timer-box" class="timer-box">${mm}:${ss}</div>
+    </div>
+    <div id="violation-note"></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${(current/questions.length)*100}%;"></div></div>
+    <div class="card">
+      <div class="q-text">${q.text}</div>
+      <div id="opts">
+        ${q.type==='essay' ? `
+        <textarea
+          id="typed-answer"
+          rows="8"
+          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+          placeholder="Javobingizni shu yerga yozing..."
+          oninput="examState.answers['${q.id}']=this.value;"
+          style="width:100%; border:2px solid var(--navy); border-radius:8px; padding:14px 16px; font-size:16px; font-family:'Inter'; resize:vertical;"
+        >${(answers[q.id]||'').replace(/</g,'&lt;')}</textarea>
+        <div class="sub" style="margin-top:8px; margin-bottom:0;">Bu insho savoli — javobingiz sun'iy intellekt tomonidan baholanadi.</div>
+        ` : `
+        <input
+          id="typed-answer"
+          type="text"
+          autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+          placeholder="Javobingizni shu yerga yozing..."
+          value="${(answers[q.id]||'').replace(/"/g,'&quot;')}"
+          oninput="examState.answers['${q.id}']=this.value;"
+          style="width:100%; border:2px solid var(--navy); border-radius:8px; padding:14px 16px; font-size:17px; font-family:'Space Grotesk';"
+        >
+        `}
+      </div>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+      <button class="btn outline" ${current===0?'disabled':''} onclick="examNav(-1)">← Oldingi</button>
+      ${isLast
+        ? `<button class="btn gold" id="submit-btn" onclick="submitExam(false)">Testni yakunlash ✓</button>`
+        : `<button class="btn" onclick="examNav(1)">Keyingi →</button>`}
+    </div>
+  </div>`;
+  updateViolationNote();
+  const inputEl = document.getElementById('typed-answer');
+  if(inputEl) inputEl.focus();
+}
+
+function examNav(dir){
+  examState.current += dir;
+  renderExam();
+}
+function updateViolationNote(){
+  const el = document.getElementById('violation-note');
+  if(!el) return;
+  if(examState.violationCount>0){
+    el.innerHTML = `<div class="violation-note">⚠️ Shubhali harakatlar qayd etildi (${examState.violationCount}). Bu o'qituvchingizga xabar qilinadi.</div>`;
+  } else el.innerHTML = '';
+}
+
+const BLOCKING_VIOLATIONS = ['PAGE_EXIT']; // only leaving the page blocks the exam now
+
+async function logViolation(type, detail){
+  if(!examState || examState.locked) return;
+  const isBlocking = BLOCKING_VIOLATIONS.includes(type);
+  if(isBlocking) examState.locked = true;
+  examState.violationCount++;
+  updateViolationNote();
+
+  const key = 'mom:submission:'+examState.hw.id+':'+session.username;
+  const sub = (await sGet(key)) || {answers:{}, violations:[]};
+  sub.violations = sub.violations || [];
+  sub.violations.push({type, detail: detail||null, at: new Date().toISOString()});
+
+  if(isBlocking){
+    sub.blocked = true;
+    sub.blockReason = type;
+    sub.score = 0;
+    sub.correctCount = 0;
+    sub.total = examState.hw.questions.length;
+    sub.passed = false;
+    sub.submittedAt = new Date().toISOString();
+  }
+  await sSet(key, sub);
+
+  const notifKey = 'mom:notif:'+examState.hw.teacherUsername;
+  const notifs = (await sGet(notifKey)) || [];
+  notifs.unshift({
+    id: uid(),
+    type:'VIOLATION',
+    message: isBlocking
+      ? `🚫 ${session.fullName} "${examState.hw.title}" testida sahifani tark etdi — test avtomatik bloklandi.`
+      : `⚠️ ${session.fullName} "${examState.hw.title}" testida shubhali harakat qildi (${VIOLATION_LABELS[type]||type}).`,
+    hwId: examState.hw.id,
+    username: session.username,
+    studentName: session.fullName,
+    resolved: !isBlocking,
+    at: new Date().toISOString()
+  });
+  await sSet(notifKey, notifs.slice(0,50));
+
+  if(!isBlocking) return; // exam continues normally
+
+  blockExam(type);
+}
+
+function releaseExamLock(hwId){
+  clearInterval(examLockInterval);
+  if(hwId) localStorage.removeItem('mom:examlock:'+hwId+':'+session.username);
+}
+
+function blockExam(type){
+  clearInterval(examTimerHandle);
+  releaseExamLock(examState?.hw?.id);
+  detachCheatListeners();
+  const hwTitle = examState?.hw?.title || '';
+  const passScore = examState?.hw?.passScore ?? 80;
+  examState = null;
+
+  app.innerHTML = `
+    <div class="result-banner fail">
+      <p>🚫 Test bloklandi</p>
+    </div>
+    <div class="card" style="text-align:center; margin-bottom:10px;">
+      <p style="margin-bottom:10px;"><b>${hwTitle}</b> testi shubhali harakat aniqlanishi tufayli avtomatik yakunlandi:</p>
+      <p style="color:var(--red); font-weight:700; margin-bottom:14px;">${VIOLATION_LABELS[type]||type}</p>
+      <div class="result-banner fail" style="padding:22px;">
+        <p style="font-size:20px;">❌ You scored less than ${passScore}%.<br>You are not allowed to attend today's lesson.</p>
+      </div>
+    </div>
+    <div class="sub" style="text-align:center;">Bu hodisa o'qituvchingizga darhol xabar qilindi. O'qituvchi ruxsat bergandan so'ng, ushbu vazifa ro'yxatda qayta "Ochiq" bo'lib ko'rinadi.</div>
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn gold" onclick="renderStudentDashboard()">Bosh sahifaga qaytish</button>
+    </div>`;
+}
+
+function attachCheatListeners(){
+  if(cheatListenersActive) return;
+  cheatListenersActive = true;
+  document.addEventListener('contextmenu', onContextMenu);
+  document.addEventListener('copy', onCopyCut);
+  document.addEventListener('cut', onCopyCut);
+  document.addEventListener('paste', onPaste);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('blur', onWindowBlur);
+  window.addEventListener('focus', onWindowFocus);
+  window.addEventListener('beforeunload', onBeforeUnload);
+}
+function detachCheatListeners(){
+  cheatListenersActive = false;
+  if(blurTimeoutHandle){ clearTimeout(blurTimeoutHandle); blurTimeoutHandle=null; }
+  document.removeEventListener('contextmenu', onContextMenu);
+  document.removeEventListener('copy', onCopyCut);
+  document.removeEventListener('cut', onCopyCut);
+  document.removeEventListener('paste', onPaste);
+  document.removeEventListener('keydown', onKeyDown);
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  window.removeEventListener('blur', onWindowBlur);
+  window.removeEventListener('focus', onWindowFocus);
+  window.removeEventListener('beforeunload', onBeforeUnload);
+}
+function onContextMenu(e){ if(!examState) return; e.preventDefault(); logViolation('RIGHT_CLICK'); }
+function onCopyCut(e){ if(!examState) return; e.preventDefault(); logViolation('COPY_ATTEMPT'); }
+function onPaste(e){ if(!examState) return; e.preventDefault(); logViolation('PASTE_ATTEMPT'); }
+function onKeyDown(e){
+  if(!examState) return;
+  const k = (e.key||'').toUpperCase();
+  const blocked = k==='F12' || (e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(k)) ||
+                   (e.metaKey&&e.altKey&&['I','J','C'].includes(k)) ||
+                   (e.ctrlKey&&['U','S','P','C','V','X'].includes(k));
+  if(blocked){ e.preventDefault(); logViolation('DEVTOOLS_ATTEMPT','key:'+e.key); }
+}
+function onVisibilityChange(){ if(!examState) return; if(document.hidden) logViolation('TAB_SWITCH'); }
+
+// Window blur fires for lots of harmless reasons too (clicking a button can
+// momentarily shift focus in some browsers/iframes). Only treat it as a real
+// "switched to another app/window" event if focus doesn't come back quickly.
+let blurTimeoutHandle = null;
+function onWindowBlur(){
+  if(!examState) return;
+  blurTimeoutHandle = setTimeout(()=>{
+    if(examState && !document.hasFocus()){
+      logViolation('WINDOW_BLUR');
+    }
+  }, 800);
+}
+function onWindowFocus(){
+  if(blurTimeoutHandle){ clearTimeout(blurTimeoutHandle); blurTimeoutHandle=null; }
+}
+
+function onBeforeUnload(e){
+  if(!examState) return;
+  logViolation('PAGE_EXIT');
+  e.preventDefault(); e.returnValue='';
+}
+
+async function submitExam(){
+  clearInterval(examTimerHandle);
+  releaseExamLock(examState?.hw?.id);
+  detachCheatListeners(); // stop monitoring immediately — the exam is already being submitted, no need to watch during the AI-grading wait
+  const {hw, answers} = examState;
+
+  const fillQs = hw.questions.filter(q=>q.type!=='essay');
+  const essayQs = hw.questions.filter(q=>q.type==='essay');
+
+  // Show a "grading..." screen while AI checks any essay answers
+  if(essayQs.length>0){
+    const btn = document.getElementById('submit-btn');
+    if(btn){ btn.disabled = true; btn.textContent = "Tekshirilmoqda..."; }
+    app.innerHTML = `<div style="text-align:center; padding:80px 20px;">
+      <div class="disp" style="font-size:18px; margin-bottom:10px;">Javoblaringiz tekshirilmoqda...</div>
+      <div class="sub">Sun'iy intellekt inshongizni baholamoqda, biroz kuting.</div>
+    </div>`;
+  }
+
+  const questionScores = {}; // qid -> 0-100
+  const essayFeedback = {};
+  const essayNeedsReview = {};
+  const essayErrorDetail = {};
+
+  fillQs.forEach(q=>{
+    questionScores[q.id] = isAnswerCorrect(answers[q.id], q.correctAnswer) ? 100 : 0;
+  });
+
+  for(const q of essayQs){
+    const answerText = (answers[q.id]||'').trim();
+    if(!answerText){
+      questionScores[q.id] = 0;
+      continue;
+    }
+    const result = await aiGradeEssay(q.text, q.rubric, answerText);
+    if(result.error){
+      console.error('AI baholash xatosi:', result.error);
+      essayNeedsReview[q.id] = true;
+      essayErrorDetail[q.id] = result.error;
+      questionScores[q.id] = null; // pending — excluded from average until teacher grades manually
+    } else {
+      questionScores[q.id] = result.score;
+      essayFeedback[q.id] = result.feedback;
+    }
+  }
+
+  const graded = Object.values(questionScores).filter(v=>v!==null);
+  const hasPending = Object.values(questionScores).some(v=>v===null);
+  const total = hw.questions.length;
+  const score = graded.length>0 ? Math.round(graded.reduce((a,b)=>a+b,0)/graded.length) : 0;
+  const passed = !hasPending && score >= hw.passScore;
+
+  const key = 'mom:submission:'+hw.id+':'+session.username;
+  const sub = (await sGet(key)) || {violations:[]};
+  sub.answers = answers; sub.score = score; sub.total = total;
+  sub.questionScores = questionScores; sub.essayFeedback = essayFeedback; sub.essayNeedsReview = essayNeedsReview; sub.essayErrorDetail = essayErrorDetail;
+  sub.pendingReview = hasPending;
+  sub.passed = passed; sub.submittedAt = new Date().toISOString();
+  await sSet(key, sub);
+
+  const notifKey = 'mom:notif:'+hw.teacherUsername;
+  const notifs = (await sGet(notifKey)) || [];
+  notifs.unshift({
+    type:'SUBMISSION',
+    message: hasPending
+      ? `${session.fullName} "${hw.title}" testini topshirdi — insho qo'lda tekshirishni kutmoqda.`
+      : `${session.fullName} "${hw.title}" testini yakunladi — natija: ${score}% (${passed?"o'tdi":"o'ta olmadi"}).`,
+    at: new Date().toISOString()
+  });
+  await sSet(notifKey, notifs.slice(0,50));
+
+  detachCheatListeners();
+  renderResult(score, passed, hw.passScore, hasPending, essayFeedback, essayQs, hw.id);
+  examState = null;
+}
+
+function renderResult(score, passed, passScore, pendingReview, essayFeedback, essayQs, hwId){
+  if(pendingReview){
+    app.innerHTML = `
+      <div class="result-banner" style="border-color:var(--gold); background:#FFF8E1;">
+        <p style="color:#8a6d1a;">⏳ Javobingiz qabul qilindi.<br>Insho qismi o'qituvchi tomonidan qo'lda tekshiriladi.</p>
+      </div>
+      <div style="text-align:center; margin-top:24px;">
+        <button class="btn gold" onclick="renderStudentDashboard()">Bosh sahifaga qaytish</button>
+      </div>`;
+    return;
+  }
+  const feedbackHtml = essayQs && essayQs.length>0
+    ? `<div class="card" style="margin-top:16px;">
+        <div style="font-weight:700; margin-bottom:8px;">✨ AI fikri (insho qismi):</div>
+        ${essayQs.map(q=>essayFeedback[q.id] ? `<p style="font-size:13px; color:#555; margin-bottom:8px;">${essayFeedback[q.id]}</p>` : '').join('')}
+      </div>` : '';
+
+  app.innerHTML = `
+    <div class="result-banner ${passed?'pass':'fail'}">
+      <p>${passed
+        ? `✅ Congratulations! You scored ${score}% or more.<br>You are allowed to attend today's lesson.`
+        : `❌ You scored less than ${passScore}%.<br>You are not allowed to attend today's lesson.`}</p>
+    </div>
+    ${feedbackHtml}
+    <div style="text-align:center; margin-top:24px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      ${!passed ? `<button class="btn gold" onclick="retryHomework('${hwId}')">↻ Qayta urinish</button>` : ''}
+      <button class="btn ${passed?'gold':'outline'}" onclick="renderStudentDashboard()">Bosh sahifaga qaytish</button>
+    </div>`;
+}
+
+async function retryHomework(hwId){
+  await sSet('mom:submission:'+hwId+':'+session.username, null);
+  startTest(hwId);
+}
+
+// ============================================================
+// TEACHER DASHBOARD
+// ============================================================
+async function renderTeacherDashboard(){
+  stopLiveUpdates();
+  const myGroups = session.groups || [];
+  app.innerHTML = `
+    <div class="grid2">
+      <div>
+        <h1 class="page-title">Mening guruhlarim</h1>
+        <div class="sub">Guruhni tanlang — o'sha guruhning uy vazifalari va o'quvchilarini ko'rasiz.</div>
+        <div id="group-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px;">
+          ${myGroups.length===0
+            ? `<div class="empty" style="grid-column:1/-1;">Sizga hali guruh biriktirilmagan. Administratorga murojaat qiling.</div>`
+            : myGroups.map(g=>`
+              <div class="hw-card" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="renderGroupDetail('${g}')">
+                <div class="title" style="font-size:20px;">${g}</div>
+                <div class="meta">Guruhni ochish →</div>
+              </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 class="disp" style="font-size:16px; margin-bottom:0;">Jonli xabarnomalar <span style="font-size:10px; color:var(--green); font-weight:700;">● onlayn</span></h2>
+          <button class="btn outline small" onclick="clearNotifications()">Tozalash</button>
+        </div>
+        <div class="card" style="padding:0; max-height:65vh; overflow-y:auto;" id="notif-list">Yuklanmoqda...</div>
+      </div>
+    </div>`;
+
+  subscribeNotifications();
+}
+
+// Real-time: any student action anywhere (any device) pushes here instantly.
+function subscribeNotifications(){
+  if(!firebaseReady) return;
+  const key = 'mom:notif:'+session.username;
+  notifUnsub = db.collection(COLLECTION).doc(key).onSnapshot(doc=>{
+    const notifs = doc.exists ? JSON.parse(doc.data().value) : [];
+    renderNotifList(notifs);
+  }, err=>{ console.error('Notif listener xatosi:', err); });
+}
+
+// ---------- group detail: this group's homeworks + attendance roster ----------
+async function renderGroupDetail(group){
+  stopLiveUpdates();
+  app.innerHTML = `
+    <button class="btn outline small" style="margin-bottom:14px;" onclick="renderTeacherDashboard()">← Guruhlarim</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:10px;">
+      <h1 class="page-title" style="margin-bottom:0;">${group} guruhi</h1>
+      <button class="btn gold small" onclick="renderNewHomework('${group}')">+ Yangi vazifa</button>
+    </div>
+    <div class="sub">Uy vazifalari va kim darsga kira olishi shu yerda.</div>
+
+    <h2 class="disp" style="font-size:15px; margin:18px 0 10px;">Uy vazifalari</h2>
+    <div id="group-hw-list">Yuklanmoqda...</div>
+
+    <h2 class="disp" style="font-size:15px; margin:26px 0 10px;">O'quvchilar — darsga kirish holati</h2>
+    <div id="group-roster">Yuklanmoqda...</div>
+  `;
+  await loadGroupHomeworks(group);
+  await loadGroupRoster(group);
+}
+
+async function loadGroupHomeworks(group){
+  const ids = (await sGet('mom:homeworklist')) || [];
+  const el = document.getElementById('group-hw-list');
+  const mine = [];
+  for(const id of ids){
+    const hw = await sGet('mom:homework:'+id);
+    if(hw && hw.groupName===group) mine.push(hw);
+  }
+  if(mine.length===0){ el.innerHTML = `<div class="empty">Bu guruh uchun hali uy vazifasi yo'q.</div>`; return; }
+
+  el.innerHTML = mine.map(hw=>`
+    <div class="hw-card">
+      <div>
+        <div class="title">${hw.title}</div>
+        <div class="meta">${hw.questions.length} savol · O'tish balli: ${hw.passScore}% · yaratdi: ${hw.teacherUsername}</div>
+        <div class="meta">${new Date(hw.startAt).toLocaleString('uz-UZ')} → ${new Date(hw.endAt).toLocaleString('uz-UZ')}</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn outline small" onclick="renderResults('${hw.id}')">Natijalar</button>
+        <button class="btn danger small" onclick="deleteHomework('${hw.id}','${group}')">O'chirish</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadGroupRoster(group){
+  const el = document.getElementById('group-roster');
+  const usernames = (await sGet('mom:userlist')) || [];
+  const students = [];
+  for(const uname of usernames){
+    const u = await sGet('mom:user:'+uname);
+    if(u && u.role==='STUDENT' && u.groupName===group) students.push(u);
+  }
+  if(students.length===0){ el.innerHTML = `<div class="empty">Bu guruhda o'quvchi yo'q.</div>`; return; }
+
+  const ids = (await sGet('mom:homeworklist')) || [];
+  const groupHwIds = [];
+  for(const id of ids){
+    const hw = await sGet('mom:homework:'+id);
+    if(hw && hw.groupName===group) groupHwIds.push(id);
+  }
+
+  const rows = [];
+  for(const s of students){
+    let latest = null, latestHwId = null;
+    for(const hwId of groupHwIds){
+      const sub = await sGet('mom:submission:'+hwId+':'+s.username);
+      if(sub && sub.submittedAt){
+        if(!latest || new Date(sub.submittedAt) > new Date(latest.submittedAt)){ latest = sub; latestHwId = hwId; }
+      }
+    }
+    rows.push({student:s, latest, latestHwId});
+  }
+
+  el.innerHTML = `<table><thead><tr><th>O'quvchi</th><th>Oxirgi natija</th><th>Darsga kira oladimi</th><th>Amal</th></tr></thead><tbody>
+    ${rows.map(({student, latest, latestHwId})=>{
+      let statusHtml;
+      if(!latest) statusHtml = `<span style="display:inline-block; background:#E5E5E5; color:#555; font-weight:700; font-size:12px; padding:5px 12px; border-radius:20px;">Hali ma'lumot yo'q</span>`;
+      else if(latest.blocked) statusHtml = `<span style="display:inline-block; background:var(--red); color:#fff; font-weight:700; font-size:12px; padding:5px 12px; border-radius:20px;">🚫 Yo'q — bloklangan</span>`;
+      else if(latest.passed) statusHtml = `<span style="display:inline-block; background:var(--green); color:#fff; font-weight:700; font-size:12px; padding:5px 12px; border-radius:20px;">✅ Ha, kira oladi</span>`;
+      else statusHtml = `<span style="display:inline-block; background:var(--red); color:#fff; font-weight:700; font-size:12px; padding:5px 12px; border-radius:20px;">❌ Yo'q, kira olmaydi</span>`;
+      return `<tr>
+        <td><b>${student.fullName}</b><br><span style="color:#9ca3af; font-size:11px;">@${student.username}</span></td>
+        <td>${latest ? latest.score+'%' : '—'}</td>
+        <td>${statusHtml}</td>
+        <td>${latest && latest.blocked && latestHwId ? `<button class="btn gold small" onclick="approveReentryDirect('${latestHwId}','${student.username}','${group}')">✓ Ruxsat berish</button>` : '—'}</td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+async function approveReentryDirect(hwId, username, group){
+  await sSet('mom:submission:'+hwId+':'+username, null);
+  loadGroupRoster(group);
+}
+
+async function deleteHomework(id, group){
+  if(!confirm("Ushbu uy vazifasini o'chirishga ishonchingiz komilmi?")) return;
+  const ids = (await sGet('mom:homeworklist')) || [];
+  await sSet('mom:homeworklist', ids.filter(x=>x!==id));
+  await sSet('mom:homework:'+id, null);
+  if(group) renderGroupDetail(group); else renderTeacherDashboard();
+}
+
+function renderNotifList(notifs){
+  const el = document.getElementById('notif-list');
+  if(!el) return;
+  if(notifs.length===0){ el.innerHTML = `<div style="padding:20px; font-size:13px; color:#9ca3af;">Hozircha xabar yo'q. O'quvchi test topshirganda yoki shubhali harakat qilganda shu yerda ko'rinadi.</div>`; return; }
+  el.innerHTML = notifs.map(n=>`
+    <div class="notif-item ${n.type==='VIOLATION'?'alert':''}">
+      ${n.message}
+      <div class="notif-time">${new Date(n.at).toLocaleTimeString('uz-UZ')}</div>
+      ${n.type==='VIOLATION' && n.hwId && !n.resolved
+        ? `<button class="btn gold small" style="margin-top:8px;" onclick="approveReentry('${n.id}','${n.hwId}','${n.username}')">✓ Ruxsat berish (qayta kirsin)</button>`
+        : n.type==='VIOLATION' && n.resolved
+          ? `<div style="font-size:11px; color:var(--green); font-weight:700; margin-top:6px;">✓ Ruxsat berildi</div>`
+          : ''}
+    </div>`).join('');
+}
+
+async function approveReentry(notifId, hwId, username){
+  await sSet('mom:submission:'+hwId+':'+username, null);
+  const notifKey = 'mom:notif:'+session.username;
+  const notifs = (await sGet(notifKey)) || [];
+  const updated = notifs.map(n => n.id===notifId ? {...n, resolved:true} : n);
+  await sSet(notifKey, updated);
+  // no manual re-render needed — the onSnapshot listener above will refresh automatically
+}
+
+async function clearNotifications(){
+  if(!confirm("Barcha xabarnomalarni tozalashga ishonchingiz komilmi?")) return;
+  await sSet('mom:notif:'+session.username, []);
+}
+
+// ---------- new homework form ----------
+let draftQuestions = [];
+let draftGroup = null;
+function renderNewHomework(group){
+  stopLiveUpdates();
+  draftGroup = group;
+  draftQuestions = [{id:uid(), type:'fill', text:'', correctAnswer:'', rubric:''}];
+  app.innerHTML = `
+    <button class="btn outline small" style="margin-bottom:14px;" onclick="renderGroupDetail('${group}')">← ${group} guruhi</button>
+    <h1 class="page-title">Yangi uy vazifasi — ${group}</h1>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="field"><label>Sarlavha</label><input id="nf-title"></div>
+      <div class="field"><label>Tavsif</label><textarea id="nf-desc" rows="2"></textarea></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="field"><label>Boshlanish vaqti</label><input id="nf-start" type="datetime-local"></div>
+        <div class="field"><label>Tugash muddati</label><input id="nf-end" type="datetime-local"></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="field"><label>Vaqt chegarasi (daqiqa)</label><input id="nf-duration" type="number" value="30"></div>
+        <div class="field"><label>O'tish balli (%)</label><input id="nf-pass" type="number" value="80"></div>
+      </div>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h2 class="disp" style="font-size:16px;">Savollar</h2>
+      <button class="btn outline small" onclick="addDraftQuestion()">+ Savol qo'shish</button>
+    </div>
+    <div class="sub" style="margin-top:-4px;">O'quvchi javobni yozib kiritadi. Bir nechta to'g'ri variant qabul qilinsa, ularni "/" bilan ajrating (masalan: goes/going).</div>
+
+    <div class="card" style="margin-bottom:16px; background:#FBFAF5;">
+      <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#5c6b8a; margin-bottom:6px;">Tez qo'shish (ixtiyoriy)</label>
+      <div class="sub" style="margin:0 0 8px; font-size:12px;">Har bir qatorda: <code>savol | javob</code>. Masalan: <code>She ___ to school every day. (go) | goes</code></div>
+      <textarea id="bulk-import" rows="4" placeholder="Savol 1... | javob1&#10;Savol 2... | javob2" style="width:100%; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px; font-family:monospace; font-size:13px;"></textarea>
+      <button class="btn outline small" style="margin-top:8px;" onclick="importBulkQuestions()">Savollarni qo'shish</button>
+      <div id="bulk-msg" style="font-size:12px; margin-top:6px;"></div>
+    </div>
+
+    <div id="q-blocks"></div>
+    <div id="nf-err" style="color:var(--red); font-size:13px; margin:10px 0;"></div>
+    <button class="btn gold" style="width:100%; margin-top:6px;" onclick="saveHomework()">Uy vazifasini yaratish</button>
+  `;
+  renderDraftQuestions();
+}
+function importBulkQuestions(){
+  const raw = document.getElementById('bulk-import').value;
+  const msgEl = document.getElementById('bulk-msg');
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(lines.length===0){ msgEl.style.color='var(--red)'; msgEl.textContent="Avval savollarni yozing."; return; }
+
+  let added = 0, skipped = 0;
+  lines.forEach(line=>{
+    const parts = line.split('|');
+    if(parts.length < 2){ skipped++; return; }
+    const text = parts[0].trim();
+    const correctAnswer = parts.slice(1).join('|').trim();
+    if(!text || !correctAnswer){ skipped++; return; }
+    // If the only existing question is still empty, replace it instead of leaving a blank one.
+    if(draftQuestions.length===1 && !draftQuestions[0].text && !draftQuestions[0].correctAnswer){
+      draftQuestions[0] = {id:uid(), text, correctAnswer};
+    } else {
+      draftQuestions.push({id:uid(), text, correctAnswer});
+    }
+    added++;
+  });
+
+  renderDraftQuestions();
+  document.getElementById('bulk-import').value = '';
+  msgEl.style.color = skipped>0 ? 'var(--red)' : 'var(--green)';
+  msgEl.textContent = `${added} ta savol qo'shildi.` + (skipped>0 ? ` ${skipped} ta qator noto'g'ri formatda bo'lgani uchun o'tkazib yuborildi.` : '');
+}
+
+function addDraftQuestion(){ draftQuestions.push({id:uid(), type:'fill', text:'', correctAnswer:'', rubric:''}); renderDraftQuestions(); }
+function removeDraftQuestion(id){ draftQuestions = draftQuestions.filter(q=>q.id!==id); renderDraftQuestions(); }
+function updateDraftText(id, val){ draftQuestions.find(q=>q.id===id).text = val; }
+function updateDraftAnswer(id, val){ draftQuestions.find(q=>q.id===id).correctAnswer = val; }
+function updateDraftRubric(id, val){ draftQuestions.find(q=>q.id===id).rubric = val; }
+function updateDraftType(id, type){ draftQuestions.find(q=>q.id===id).type = type; renderDraftQuestions(); }
+
+function renderDraftQuestions(){
+  const el = document.getElementById('q-blocks');
+  el.innerHTML = draftQuestions.map((q,qi)=>`
+    <div class="q-block">
+      <div class="qhead"><span>Savol ${qi+1}</span>${draftQuestions.length>1?`<span style="color:var(--red); cursor:pointer;" onclick="removeDraftQuestion('${q.id}')">O'chirish</span>`:''}</div>
+      <div style="display:flex; gap:14px; margin-bottom:10px;">
+        <label style="display:flex; align-items:center; gap:5px; font-size:12px;">
+          <input type="radio" name="qtype-${q.id}" ${(q.type||'fill')==='fill'?'checked':''} onchange="updateDraftType('${q.id}','fill')"> Oddiy (aniq javob)
+        </label>
+        <label style="display:flex; align-items:center; gap:5px; font-size:12px;">
+          <input type="radio" name="qtype-${q.id}" ${q.type==='essay'?'checked':''} onchange="updateDraftType('${q.id}','essay')"> ✨ Insho (AI baholaydi)
+        </label>
+      </div>
+      <div class="field"><input placeholder="Savol matni (masalan: She ___ to school every day.)" value="${q.text}" oninput="updateDraftText('${q.id}', this.value)"></div>
+      ${q.type==='essay'
+        ? `<div class="field"><label>Baholash mezoni (ixtiyoriy)</label><textarea rows="2" placeholder="masalan: kamida 100 so'z, o'tgan zamon ishlatilishi kerak" oninput="updateDraftRubric('${q.id}', this.value)">${q.rubric||''}</textarea></div>`
+        : `<div class="field"><label>To'g'ri javob</label><input placeholder="masalan: goes" value="${q.correctAnswer}" oninput="updateDraftAnswer('${q.id}', this.value)"></div>`}
+    </div>
+  `).join('');
+}
+
+async function saveHomework(){
+  const title = document.getElementById('nf-title').value.trim();
+  const description = document.getElementById('nf-desc').value.trim();
+  const groupName = draftGroup;
+  const startAt = document.getElementById('nf-start').value;
+  const endAt = document.getElementById('nf-end').value;
+  const durationMin = Number(document.getElementById('nf-duration').value)||30;
+  const passScore = Number(document.getElementById('nf-pass').value)||80;
+  const errEl = document.getElementById('nf-err');
+
+  if(!title || !groupName || !startAt || !endAt){ errEl.textContent="Barcha majburiy maydonlarni to'ldiring."; return; }
+  const bad = draftQuestions.find(q=>!q.text || (q.type!=='essay' && !q.correctAnswer));
+  if(bad){ errEl.textContent="Barcha savollar matni va (insho bo'lmasa) to'g'ri javobi to'ldirilishi kerak."; return; }
+  const hasEssay = draftQuestions.some(q=>q.type==='essay');
+  if(hasEssay && !aiGradingConfigured()){
+    errEl.textContent="Insho savoli qo'shilgan, lekin AI baholash hali ulanmagan (AI_ENDPOINT sozlanmagan).";
+    return;
+  }
+
+  const id = uid();
+  const hw = { id, title, description, groupName, startAt:new Date(startAt).toISOString(), endAt:new Date(endAt).toISOString(),
+    durationMin, passScore, teacherUsername:session.username, questions:draftQuestions, createdAt:new Date().toISOString() };
+  await sSet('mom:homework:'+id, hw);
+  const ids = (await sGet('mom:homeworklist')) || [];
+  ids.push(id);
+  await sSet('mom:homeworklist', ids);
+
+  renderGroupDetail(groupName);
+}
+
+// ---------- results page ----------
+async function reopenAttempt(hwId, username){
+  if(!confirm("Bu o'quvchining urinishi o'chiriladi va u testni qaytadan topshira oladi. Davom etasizmi?")) return;
+  await sSet('mom:submission:'+hwId+':'+username, null);
+  renderResults(hwId);
+}
+
+async function renderResults(hwId){
+  stopLiveUpdates();
+  const hw = await sGet('mom:homework:'+hwId);
+  app.innerHTML = `<h1 class="page-title">${hw.title}</h1><div class="sub">${hw.groupName} · O'tish balli: ${hw.passScore}%</div><div id="res-table">Yuklanmoqda...</div>`;
+
+  const usernames = (await sGet('mom:userlist')) || [];
+  const rows = [];
+  for(const uname of usernames){
+    const u = await sGet('mom:user:'+uname);
+    if(!u || u.role!=='STUDENT' || u.groupName!==hw.groupName) continue;
+    const sub = await sGet('mom:submission:'+hwId+':'+uname);
+    rows.push({u, sub});
+  }
+
+  const el = document.getElementById('res-table');
+  if(rows.length===0){ el.innerHTML = `<div class="empty">Bu guruhda o'quvchi topilmadi.</div>`; return; }
+
+  const essayQs = (hw.questions||[]).filter(q=>q.type==='essay');
+
+  el.innerHTML = `<table><thead><tr><th>O'quvchi</th><th>Natija</th><th>Holat</th><th>Buzilishlar</th><th>Vaqt</th><th>Amal</th></tr></thead><tbody>
+    ${rows.map(({u,sub})=>{
+      const violations = sub?.violations || [];
+      const statusHtml = !sub ? `<span style="color:#9ca3af;">Boshlamagan</span>`
+        : sub.blocked
+          ? `<span style="color:var(--red); font-weight:700;">🚫 Bloklangan</span>`
+        : sub.pendingReview
+          ? `<span style="color:#8a6d1a; font-weight:700;">⏳ Insho tekshirilmoqda</span>`
+        : sub.submittedAt
+          ? (sub.passed ? `<span style="color:var(--green); font-weight:700;">O'tdi ✓</span>` : `<span style="color:var(--red); font-weight:700;">O'ta olmadi ✗</span>`)
+          : `<span style="color:#9ca3af;">Jarayonda</span>`;
+      return `<tr>
+        <td><b>${u.fullName}</b><br><span style="color:#9ca3af; font-size:11px;">@${u.username}</span></td>
+        <td><b>${sub && sub.score!==undefined ? sub.score+'%' : '—'}</b></td>
+        <td>${statusHtml}</td>
+        <td>${violations.length===0?'<span style="color:#d1d5db; font-size:12px;">Yo\'q</span>':violations.map(v=>`<span class="tag" title="${new Date(v.at).toLocaleString('uz-UZ')}">${VIOLATION_LABELS[v.type]||v.type}</span>`).join('')}</td>
+        <td style="font-size:11px; color:#9ca3af;">${sub && sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('uz-UZ') : '—'}</td>
+        <td>${sub ? `<button class="btn outline small" onclick="reopenAttempt('${hwId}','${u.username}')">Qayta ochish</button>` : '—'}</td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>
+
+  ${essayQs.length>0 ? `
+  <h2 class="disp" style="font-size:15px; margin:26px 0 10px;">✨ Insho javoblari va AI bahosi</h2>
+  <div id="essay-answers">
+    ${rows.filter(r=>r.sub && r.sub.answers).map(({u,sub})=>essayQs.map(q=>{
+      const answerText = sub.answers[q.id];
+      if(!answerText) return '';
+      const qScore = sub.questionScores ? sub.questionScores[q.id] : null;
+      const feedback = sub.essayFeedback ? sub.essayFeedback[q.id] : null;
+      const needsReview = sub.essayNeedsReview && sub.essayNeedsReview[q.id];
+      const errorDetail = sub.essayErrorDetail ? sub.essayErrorDetail[q.id] : null;
+      return `<div class="card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <b>${u.fullName}</b>
+          ${needsReview
+            ? `<span style="color:var(--red); font-size:12px; font-weight:700;">⚠️ AI xatosi — qo'lda baholang</span>`
+            : `<span style="color:var(--gold-deep,#8a6d1a); font-size:13px; font-weight:700;">Ball: ${qScore}%</span>`}
+        </div>
+        <div style="font-size:13px; color:#333; background:#FBFAF5; border-radius:6px; padding:10px; margin-bottom:8px; white-space:pre-wrap;">${answerText}</div>
+        ${feedback ? `<div style="font-size:12px; color:#555;"><b>AI fikri:</b> ${feedback}</div>` : ''}
+        ${errorDetail ? `<div style="font-size:11px; color:var(--red); margin-top:4px; font-family:monospace;">Xato tafsiloti: ${errorDetail}</div>` : ''}
+        ${needsReview ? `
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input type="number" min="0" max="100" id="manual-${hwId}-${u.username}-${q.id}" placeholder="Ball (0-100)" style="width:100px; border:2px solid var(--navy-light); border-radius:6px; padding:6px 8px;">
+            <button class="btn gold small" onclick="manualGradeEssay('${hwId}','${u.username}','${q.id}')">Saqlash</button>
+          </div>` : ''}
+      </div>`;
+    }).join('')).join('')}
+  </div>` : ''}
+
+  <div style="margin-top:16px;"><button class="btn outline small" onclick="renderGroupDetail('${hw.groupName}')">← ${hw.groupName} guruhiga qaytish</button></div>`;
+}
+
+async function manualGradeEssay(hwId, username, qid){
+  const input = document.getElementById(`manual-${hwId}-${username}-${qid}`);
+  const val = Number(input.value);
+  if(isNaN(val) || val<0 || val>100){ alert("0 dan 100 gacha son kiriting."); return; }
+
+  const key = 'mom:submission:'+hwId+':'+username;
+  const sub = await sGet(key);
+  if(!sub) return;
+  sub.questionScores = sub.questionScores || {};
+  sub.questionScores[qid] = val;
+  if(sub.essayNeedsReview) delete sub.essayNeedsReview[qid];
+
+  const stillPending = sub.essayNeedsReview && Object.keys(sub.essayNeedsReview).length>0;
+  sub.pendingReview = stillPending;
+  if(!stillPending){
+    const hw = await sGet('mom:homework:'+hwId);
+    const scores = Object.values(sub.questionScores).filter(v=>v!==null);
+    sub.score = scores.length>0 ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+    sub.passed = sub.score >= hw.passScore;
+  }
+  await sSet(key, sub);
+  renderResults(hwId);
+}
+
+// ============================================================
+// ADMIN DASHBOARD
+// ============================================================
+async function getGroups(){
+  const groups = await sGet('mom:grouplist');
+  if(groups && groups.length) return groups;
+  const defaults = ['M-11','M-15','M-16','M-17'];
+  await sSet('mom:grouplist', defaults);
+  return defaults;
+}
+
+async function getTeachersList(){
+  const usernames = (await sGet('mom:userlist')) || [];
+  const teachers = [];
+  for(const uname of usernames){
+    const u = await sGet('mom:user:'+uname);
+    if(u && (u.role==='TEACHER' || u.role==='SUPPORT_TEACHER')) teachers.push(u);
+  }
+  return teachers;
+}
+
+async function renderAdminDashboard(){
+  const groups = await getGroups();
+  const teachers = await getTeachersList();
+  app.innerHTML = `
+    <h1 class="page-title">Administrator paneli</h1>
+    <div class="disclaimer">Ma'lumotlar endi bulutda (Firebase) saqlanadi — barcha qurilmalarda ko'rinadi. Lekin bu hali ham parollarni xeshlamaydigan demo darajadagi tizim. Ko'p sonli haqiqiy o'quvchi ma'lumotlari va yuqori xavfsizlik uchun avval berilgan Next.js+PostgreSQL+NextAuth loyihasidan foydalaning.</div>
+
+    <div class="card" style="max-width:420px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div>
+        <div style="font-family:'Space Grotesk'; font-weight:700;">${session.fullName}</div>
+        <div style="font-size:11px; color:#9ca3af;">Sizning hisobingiz (${session.username})</div>
+      </div>
+      <button class="btn outline small" onclick="changePassword('${session.username}', true)">Parolimni o'zgartirish</button>
+    </div>
+
+    <h2 class="disp" style="font-size:16px; margin-bottom:10px;">Guruhlar</h2>
+    <div class="card" style="max-width:460px; margin-bottom:24px;">
+      <div id="group-chip-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+        ${groups.length===0 ? `<div style="font-size:13px; color:#9ca3af;">Hozircha guruh yo'q.</div>` : groups.map(g=>{
+          const assigned = teachers.filter(t=>t.groups && t.groups.includes(g));
+          return `
+          <div style="border:1px solid var(--navy-light); border-radius:8px; padding:8px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; color:var(--navy);">${g}</span>
+              <span style="cursor:pointer; color:var(--red); font-size:12px;" onclick="removeGroup('${g}')">✕ O'chirish</span>
+            </div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:3px;">${assigned.length>0 ? 'Mas\'ul: '+assigned.map(t=>t.fullName).join(', ') : "Hali o'qituvchi biriktirilmagan"}</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div style="border-top:1px solid var(--navy-light); padding-top:14px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#5c6b8a; margin-bottom:6px;">Yangi guruh qo'shish</label>
+        <input id="new-group-input" placeholder="Guruh nomi (masalan: M-20)" style="width:100%; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#5c6b8a; margin-bottom:6px;">Mas'ul o'qituvchi(lar)</label>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px; margin-bottom:10px;">
+          ${teachers.length===0 ? `<span style="font-size:12px; color:#9ca3af;">Hali o'qituvchi yo'q — avval o'qituvchi hisobini yarating.</span>` : teachers.map(t=>`
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+              <input type="checkbox" class="new-group-teacher" value="${t.username}"> ${t.fullName}
+            </label>`).join('')}
+        </div>
+        <button class="btn gold small" onclick="addGroup()">+ Guruh qo'shish</button>
+      </div>
+      <div id="group-msg" style="font-size:12px; margin-top:8px;"></div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h2 class="disp" style="font-size:16px; margin-bottom:10px;">Yangi hisob yaratish</h2>
+        <div class="card" style="max-width:420px;">
+          <div class="field"><label>To'liq ism</label><input id="af-name"></div>
+          <div class="field"><label>Login</label><input id="af-user"></div>
+          <div class="field"><label>Parol</label><input id="af-pass"></div>
+          <div class="field"><label>Lavozim</label>
+            <select id="af-role" onchange="toggleGroupField()">
+              <option value="STUDENT">O'quvchi</option>
+              <option value="TEACHER">O'qituvchi</option>
+              <option value="SUPPORT_TEACHER">Yordamchi o'qituvchi</option>
+              <option value="ADMIN">Administrator</option>
+            </select>
+          </div>
+          <div class="field" id="af-group-wrap">
+            <label>Guruh</label>
+            <select id="af-group">
+              ${groups.map(g=>`<option value="${g}">${g}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field" id="af-teacher-groups-wrap" style="display:none;">
+            <label>Qaysi guruh(lar)ni o'qitadi</label>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px;">
+              ${groups.map(g=>`
+                <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+                  <input type="checkbox" class="af-tgroup" value="${g}"> ${g}
+                </label>`).join('')}
+            </div>
+          </div>
+          <div id="af-msg" style="font-size:13px; margin-bottom:10px;"></div>
+          <button class="btn gold" style="width:100%;" onclick="createAccount()">Hisob yaratish</button>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="disp" style="font-size:16px; margin-bottom:10px;">Qidiruv</h2>
+        <input id="roster-search" placeholder="Ism yoki familiya bo'yicha qidirish..." oninput="filterRosters()" style="width:100%; border:2px solid var(--navy-light); border-radius:8px; padding:10px 12px; margin-bottom:18px;">
+
+        <h2 class="disp" style="font-size:16px; margin-bottom:10px;">O'qituvchilar</h2>
+        <div class="card" style="padding:0; margin-bottom:24px; max-height:260px; overflow-y:auto;" id="teacher-roster">Yuklanmoqda...</div>
+
+        <h2 class="disp" style="font-size:16px; margin-bottom:10px;">O'quvchilar — guruh bo'yicha</h2>
+        <div id="student-roster-groups">Yuklanmoqda...</div>
+      </div>
+    </div>
+
+    <h2 class="disp" style="font-size:16px; margin:32px 0 10px; color:var(--red);">⚠️ Xavfli hudud</h2>
+    <div class="card" style="max-width:460px; border-color:var(--red);">
+      <p style="font-size:13px; color:#555; margin-bottom:12px;">Barcha guruhlar, o'qituvchi/o'quvchi hisoblari, uy vazifalari, natijalar va xabarnomalarni butunlay o'chiradi. Faqat sizning admin hisobingiz qoladi. Bu amalni qaytarib bo'lmaydi.</p>
+      <button class="btn danger" style="width:100%;" onclick="factoryReset()">Tizimni butunlay tozalash</button>
+    </div>`;
+  loadRosters();
+}
+
+async function factoryReset(){
+  if(!confirm("DIQQAT: barcha guruhlar, hisoblar, uy vazifalari va natijalar butunlay o'chiriladi. Faqat sizning admin hisobingiz qoladi. Bu amalni qaytarib bo'lmaydi. Davom etasizmi?")) return;
+  if(!confirm("Ishonchingiz komilmi? Bu SO'NGGI ogohlantirish — barcha ma'lumotlar yo'qoladi.")) return;
+
+  try{
+    const snap = await db.collection(COLLECTION)
+      .where(firebase.firestore.FieldPath.documentId(), '>=', 'mom:')
+      .where(firebase.firestore.FieldPath.documentId(), '<', 'mom;')
+      .get();
+    const batch = db.batch();
+    snap.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+
+    // Re-create just the current admin so they can still log in
+    await sSet('mom:user:'+session.username, {
+      username: session.username, password: session.password,
+      fullName: session.fullName, role: 'ADMIN'
+    });
+    await sSet('mom:userlist', [session.username]);
+    await sSet('mom:grouplist', []);
+    await sSet('mom:homeworklist', []);
+    await sSet('mom:seeded', true); // prevent demo accounts from being re-seeded
+  }catch(err){
+    alert("Tozalashda xatolik: " + err.message);
+    return;
+  }
+  alert("Tizim tozalandi. Endi faqat sizning admin hisobingiz mavjud.");
+  renderAdminDashboard();
+}
+
+async function addGroup(){
+  const input = document.getElementById('new-group-input');
+  const name = input.value.trim();
+  const msgEl = document.getElementById('group-msg');
+  if(!name){ msgEl.style.color='var(--red)'; msgEl.textContent="Guruh nomini kiriting."; return; }
+  const groups = await getGroups();
+  if(groups.includes(name)){ msgEl.style.color='var(--red)'; msgEl.textContent="Bu guruh allaqachon mavjud."; return; }
+  groups.push(name);
+  await sSet('mom:grouplist', groups);
+
+  const selectedTeachers = Array.from(document.querySelectorAll('.new-group-teacher:checked')).map(el=>el.value);
+  for(const username of selectedTeachers){
+    const t = await sGet('mom:user:'+username);
+    if(!t) continue;
+    t.groups = t.groups || [];
+    if(!t.groups.includes(name)) t.groups.push(name);
+    await sSet('mom:user:'+username, t);
+  }
+  renderAdminDashboard();
+}
+
+async function removeGroup(name){
+  if(!confirm(`"${name}" guruhini o'chirishga ishonchingiz komilmi? (Bu guruhga tegishli mavjud o'quvchi/o'qituvchilar o'zgarmaydi, faqat yangi hisob yaratishda bu guruh endi ko'rinmaydi.)`)) return;
+  const groups = await getGroups();
+  await sSet('mom:grouplist', groups.filter(g=>g!==name));
+  renderAdminDashboard();
+}
+
+let rosterCache = {teachers:[], studentsByGroup:{}};
+
+async function loadRosters(){
+  const usernames = (await sGet('mom:userlist')) || [];
+  const teachers = [], students = [];
+  for(const uname of usernames){
+    const u = await sGet('mom:user:'+uname);
+    if(!u) continue;
+    if(u.role==='TEACHER' || u.role==='SUPPORT_TEACHER') teachers.push(u);
+    else if(u.role==='STUDENT') students.push(u);
+  }
+  const studentsByGroup = {};
+  students.forEach(s=>{
+    const g = s.groupName || "Guruhsiz";
+    studentsByGroup[g] = studentsByGroup[g] || [];
+    studentsByGroup[g].push(s);
+  });
+  rosterCache = {teachers, studentsByGroup};
+  renderRosters(rosterCache);
+}
+
+function renderRosters({teachers, studentsByGroup}){
+  const ROLE_LABEL = {TEACHER:"O'qituvchi", SUPPORT_TEACHER:"Yordamchi o'qituvchi"};
+  const teacherEl = document.getElementById('teacher-roster');
+  teacherEl.innerHTML = teachers.length===0
+    ? `<div style="padding:16px; font-size:13px; color:#9ca3af;">Hozircha o'qituvchi yo'q.</div>`
+    : teachers.map(t=>`
+        <div style="padding:12px 16px; border-bottom:1px solid #eee; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+            <div><b>${t.fullName}</b><div style="font-size:11px; color:#9ca3af;">${ROLE_LABEL[t.role]} · login: ${t.username} · guruhlar: ${(t.groups&&t.groups.length)?t.groups.join(', '):'biriktirilmagan'}</div></div>
+            <div style="font-family:monospace; background:#F5F5F5; border:1px solid var(--navy-light); border-radius:6px; padding:3px 8px; font-size:12px;">${t.password}</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn outline small" onclick="changePassword('${t.username}')">Parolni o'zgartirish</button>
+            <button class="btn danger small" onclick="deleteUser('${t.username}')">O'chirish</button>
+          </div>
+        </div>`).join('');
+
+  const groupsEl = document.getElementById('student-roster-groups');
+  const groupNames = Object.keys(studentsByGroup).sort();
+  if(groupNames.length===0){
+    groupsEl.innerHTML = `<div class="empty">Hozircha o'quvchi yo'q.</div>`;
+    return;
+  }
+  groupsEl.innerHTML = groupNames.map(g=>`
+    <div class="card" style="padding:0; margin-bottom:12px; overflow:hidden;">
+      <div onclick="toggleGroupRoster('${g}')" style="cursor:pointer; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:var(--navy); color:#fff;">
+        <b>${g}</b>
+        <span style="font-size:12px; color:var(--gold);">${studentsByGroup[g].length} o'quvchi ▾</span>
+      </div>
+      <div id="group-roster-${g}" style="display:none;">
+        ${studentsByGroup[g].map(s=>`
+          <div style="padding:12px 16px; border-bottom:1px solid #eee; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+              <div><b>${s.fullName}</b><div style="font-size:11px; color:#9ca3af;">login: ${s.username}</div></div>
+              <div style="font-family:monospace; background:#F5F5F5; border:1px solid var(--navy-light); border-radius:6px; padding:3px 8px; font-size:12px;">${s.password}</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn outline small" onclick="changePassword('${s.username}')">Parolni o'zgartirish</button>
+              <button class="btn danger small" onclick="deleteUser('${s.username}')">O'chirish</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleGroupRoster(g){
+  const el = document.getElementById('group-roster-'+g);
+  if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+function filterRosters(){
+  const q = document.getElementById('roster-search').value.trim().toLowerCase();
+  if(!q){ renderRosters(rosterCache); return; }
+  const teachers = rosterCache.teachers.filter(t=>t.fullName.toLowerCase().includes(q) || t.username.toLowerCase().includes(q));
+  const studentsByGroup = {};
+  Object.entries(rosterCache.studentsByGroup).forEach(([g, list])=>{
+    const matched = list.filter(s=>s.fullName.toLowerCase().includes(q) || s.username.toLowerCase().includes(q));
+    if(matched.length>0) studentsByGroup[g] = matched;
+  });
+  renderRosters({teachers, studentsByGroup});
+  // auto-expand groups that have matches while searching
+  Object.keys(studentsByGroup).forEach(g=>{
+    const el = document.getElementById('group-roster-'+g);
+    if(el) el.style.display = 'block';
+  });
+}
+
+async function changePassword(username, isSelf){
+  const newPass = prompt(isSelf ? "Yangi parolingizni kiriting:" : `"${username}" uchun yangi parolni kiriting:`);
+  if(newPass === null) return;
+  if(!newPass.trim()){ alert("Parol bo'sh bo'lishi mumkin emas."); return; }
+  const user = await sGet('mom:user:'+username);
+  if(!user){ alert("Foydalanuvchi topilmadi."); return; }
+  user.password = newPass.trim();
+  await sSet('mom:user:'+username, user);
+  if(isSelf){
+    alert("Parolingiz muvaffaqiyatli o'zgartirildi. Keyingi safar kirishda yangi parolni ishlating.");
+  } else {
+    loadRosters();
+  }
+}
+
+async function deleteUser(username){
+  if(!confirm(`"${username}" hisobini butunlay o'chirishga ishonchingiz komilmi? Bu foydalanuvchi endi login/parol bilan kira olmaydi.`)) return;
+  await sSet('mom:user:'+username, null);
+  const list = (await sGet('mom:userlist')) || [];
+  await sSet('mom:userlist', list.filter(u=>u!==username));
+  loadRosters();
+}
+
+function toggleGroupField(){
+  const role = document.getElementById('af-role').value;
+  document.getElementById('af-group-wrap').style.display = role==='STUDENT' ? 'block':'none';
+  document.getElementById('af-teacher-groups-wrap').style.display = (role==='TEACHER'||role==='SUPPORT_TEACHER') ? 'block':'none';
+}
+async function createAccount(){
+  const fullName = document.getElementById('af-name').value.trim();
+  const username = document.getElementById('af-user').value.trim();
+  const password = document.getElementById('af-pass').value;
+  const role = document.getElementById('af-role').value;
+  const groupName = role==='STUDENT' ? document.getElementById('af-group')?.value : null;
+  const groups = (role==='TEACHER'||role==='SUPPORT_TEACHER')
+    ? Array.from(document.querySelectorAll('.af-tgroup:checked')).map(el=>el.value)
+    : null;
+  const msgEl = document.getElementById('af-msg');
+
+  if(!fullName || !username || !password){ msgEl.style.color='var(--red)'; msgEl.textContent="Barcha maydonlarni to'ldiring."; return; }
+  if((role==='TEACHER'||role==='SUPPORT_TEACHER') && (!groups || groups.length===0)){ msgEl.style.color='var(--red)'; msgEl.textContent="Kamida bitta guruhni belgilang."; return; }
+  const existing = await sGet('mom:user:'+username);
+  if(existing){ msgEl.style.color='var(--red)'; msgEl.textContent="Bu login band."; return; }
+
+  await sSet('mom:user:'+username, {username, password, fullName, role, groupName, groups});
+  const list = (await sGet('mom:userlist')) || [];
+  list.push(username);
+  await sSet('mom:userlist', list);
+
+  msgEl.style.color='var(--green)';
+  msgEl.textContent = `"${username}" (${role}) muvaffaqiyatli yaratildi.`;
+  document.getElementById('af-name').value='';
+  document.getElementById('af-user').value='';
+  document.getElementById('af-pass').value='';
+  loadRosters();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function renderSetupGate(){
+  if(firebaseInitError){
+    app.innerHTML = `
+      <div style="max-width:520px; margin:60px auto; text-align:center;">
+        <h1 class="page-title">Ulanishda vaqtinchalik xatolik</h1>
+        <div class="sub">FIREBASE_CONFIG to'g'ri kiritilgan, lekin Firebase kutubxonasi yuklanmadi (odatda internet aloqasi yoki ushbu ko'rish oynasining cheklovi sabab bo'ladi).</div>
+        <div class="card" style="text-align:left; font-size:13px; color:#555;">
+          <b>Nima qilish kerak:</b>
+          <ul style="padding-left:18px; line-height:1.9; margin-top:8px;">
+            <li>Sahifani qayta yuklang (pastdagi tugma)</li>
+            <li>Internet aloqangizni tekshiring</li>
+            <li>Agar bu Claude ichidagi ko'rish oynasida bo'lsa, faylni yuklab olib, alohida brauzerda (Chrome/Safari) oching — u yerda odatda muammosiz ishlaydi</li>
+          </ul>
+        </div>
+        <button class="btn gold" style="margin-top:16px;" onclick="location.reload()">Qayta yuklash</button>
+      </div>`;
+    return;
+  }
+  app.innerHTML = `
+    <div style="max-width:560px; margin:40px auto;">
+      <h1 class="page-title">Sozlash kerak — 1 martalik, 5 daqiqa</h1>
+      <div class="sub">Bu sayt ko'p qurilmali ishlashi uchun bepul Google Firebase bulutli bazasiga ulanishi kerak.</div>
+      <div class="card">
+        <ol style="padding-left:20px; font-size:14px; line-height:2;">
+          <li><a href="https://console.firebase.google.com" target="_blank" style="color:var(--navy); font-weight:700;">console.firebase.google.com</a> ga kiring (Google hisobi bilan) va <b>"Add project"</b> bosing.</li>
+          <li>Loyiha nomini kiriting (masalan: <code>maris-oquv-markaz</code>) va yarating.</li>
+          <li>Chap menyudan <b>Build → Firestore Database → Create database</b> ni bosing, <b>"Start in test mode"</b> ni tanlang.</li>
+          <li>Chap tepadagi ⚙️ (Project settings) → <b>"Your apps"</b> → veb belgisi (&lt;/&gt;) ni bosib yangi veb-ilova qo'shing.</li>
+          <li>Chiqqan <code>firebaseConfig</code> obyektini nusxalab, shu HTML faylning boshida <code>FIREBASE_CONFIG</code> qismiga joylashtiring.</li>
+          <li>Faylni saqlang va qayta oching — tayyor! Endi har qanday qurilmadan kirish mumkin.</li>
+        </ol>
+        <div class="disclaimer" style="margin-top:16px; margin-bottom:0;">
+          Eslatma: "test mode" boshida hammaga ochiq bo'ladi (demo uchun yetarli). Agar bu haqiqiy maktab ma'lumotlari bo'lsa, keyinchalik Firestore xavfsizlik qoidalarini (Security Rules) sozlashni unutmang.
+        </div>
+      </div>
+    </div>`;
+}
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+  ]);
+}
+
+function renderStartupError(){
+  app.innerHTML = `
+    <div style="max-width:480px; margin:60px auto; text-align:center;">
+      <h1 class="page-title">Ulanish juda uzoq davom etyapti</h1>
+      <div class="sub">Firebase bulutiga ulanib bo'lmayapti. Bu odatda quyidagilardan biri sababli bo'ladi:</div>
+      <div class="card" style="text-align:left; font-size:13px; color:#555;">
+        <ul style="padding-left:18px; line-height:1.9;">
+          <li>Ushbu ko'rish oynasi (Claude preview) uzoq muddatli internet ulanishlarini cheklaydi — faylni <b>yuklab olib, alohida brauzerda</b> (Chrome/Safari) ochib ko'ring, odatda u yerda muammosiz ishlaydi</li>
+          <li>Internet aloqangiz uzilgan yoki juda sekin</li>
+          <li>Firestore Database hali to'liq faollashmagan bo'lishi mumkin (Firebase konsolida bir necha daqiqa kutib ko'ring)</li>
+        </ul>
+      </div>
+      <button class="btn gold" style="margin-top:16px;" onclick="location.reload()">Qayta urinish</button>
+    </div>`;
+}
+
+(async function init(){
+  if(!firebaseReady){ renderSetupGate(); return; }
+  try{
+    await withTimeout(ensureSeed(), 10000);
+    renderHeader();
+    goHome();
+  }catch(e){
+    console.error('Ishga tushirish xatosi:', e);
+    renderStartupError();
+  }
+})();
+</script>
+</body>
+</html>
